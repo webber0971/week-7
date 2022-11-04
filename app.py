@@ -94,7 +94,7 @@ def signin():
     if(clientGet==None):
         return redirect("/error?msg=帳號或密碼輸入錯誤")
     if(clientGet != None):
-        if(clientGet[3]!=password):
+        if(clientGet[passwordIndex]!=password):
             return redirect("/error?msg=帳號或密碼輸入錯誤2")
     session["nickname"]=clientGet[1]
     session["id"]=clientGet[0]
@@ -130,7 +130,7 @@ def apiGetMemberData():
     # sql="select * from member where name = %s"
     print(userName)
     mycursor.execute(sql,(userName,))
-    memberData=mycursor.fetchall()
+    memberData=mycursor.fetchall() #這邊使用fetchall因為同樣姓名的使用者不一定只有一個
     if(len(memberData)==0):
         jsonStr={"data":None}
         return jsonStr

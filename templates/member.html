@@ -23,7 +23,7 @@
             let renewBt=window.document.getElementById("renewBt")
             useEnterToSubmitNewName()
             renewBt.addEventListener("click",sendNewName)
-            //用post連線傳送新的用戶名稱
+            //用post連線告知後端更新用戶名稱
             function sendNewName(){
                 let requestData={"name":"新的使⽤者姓名"}
                 let url = "http://127.0.0.1:3000/api/member"
@@ -68,6 +68,7 @@
                 }
             })
         }
+        //用fetch連接後端取得資料
         function findNameWithFetch(){
             var input=window.document.getElementById("findInput")
             console.log(input.value)

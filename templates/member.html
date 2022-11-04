@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style type="text/css">
+        .contentName{font-weight: bold;}
+        .contentText{font-weight: initial;}
+        .firstBlock{margin-right: 5%;margin-left: 5%;background-color:rgb(25, 54, 95);width:auto;height:100px;text-align:center;line-height:100px;font-size: larger;color: aliceblue;font-weight: bold;}
+        .secondBlock{margin-right: 5%;margin-left: 5%;width:auto;height:200px;border-width:1px;border-style:solid;border-bottom: hidden;border-color:rgb(160, 179, 179);display: flex;justify-content:center;align-items:center;}
+        .thirdBlock{margin-right: 5%;margin-left: 5%;width:auto;height:200px;border-width:1px;border-style:solid;border-top-style:hidden;border-bottom: hidden;border-color:rgb(160, 179, 179);display: flex;justify-content:center;align-items:center;}
+        .contentBlock{margin-right: 5%;margin-left: 5%;width:auto;height: max-content;border-width:1px;border-style:solid;border-top-style:hidden;border-color:rgb(160, 179, 179);display: flex;justify-content:center;align-items:center;}
+    </style>
+    <script>
+        //網頁初始化
+        function getInformation(){
+            renewName()
+            findNameWithFetch()
+        }
+        //更新用戶姓名
+        function renewName(){
+            let renewBt=window.document.getElementById("renewBt")
+            useEnterToSubmitNewName()
+            renewBt.addEventListener("click",sendNewName)
+            //用post連線傳送新的用戶名稱
+            function sendNewName(){
+                let requestData={"name":"新的使⽤者姓名"}
+                let url = "http://127.0.0.1:3000/api/member"
+                let xhr= new XMLHttpRequest
+                xhr.open("post",url,true)
+                xhr.setRequestHeader(
+                    "Content-Type","application/json"
+                )
+                inputNewName=window.document.getElementById("renewInput").value
+                if(inputNewName==""){
+                    console.log("更新姓名不可為空")
+                    alert("更新姓名不可為空")
+
+                }else{
+                    console.log('<%=Session["nickname"]%>')
+                    xhr.send(JSON.stringify({"newName":inputNewName}))
+                    xhr.onload=function(){
+                        result=xhr.responseText
+                        renewResult=window.document.getElementById("renewResult")
+                        welcomeWords=window.document.getElementById("welcomeWords")
+                        console.log(result)
+                        postResult=JSON.parse(result)
+                        console.log(postResult["ok"])
+                        console.log(postResult["error"])
+                        if(postResult["ok"]){
+                            renewResult.innerHTML="更新成功"
+                            welcomeWords.innerHTML=inputNewName+" ， 歡迎登入系統"
+                        }else{
+                            renewResult.innerHTML="更新失敗"
+                        }
+                    }
+                }
+            }
+        }
+        //禁止form預設的提交方式，並綁定button點擊動作
+        function useEnterToSubmitNewName(){
+            let newNameInput=window.document.getElementById("renewInput")
+            newNameInput.addEventListener("keypress",function(event){
+                if(window.event.key==="Enter"){
+                    event.preventDefault()//終止預設行為
+                    document.getElementById("renewBt").click()
+                }
+            })
+        }
+        function findNameWithFetch(){
+            var input=window.document.getElementById("findInput")
+            console.log(input.value)
+            var submitBt=window.document.getElementById("submitBt")
+            submitBt.addEventListener("click",show)
+            function show(){
+                var input=window.document.getElementById("findInput")
+                if(input.value==""){
+                    event.preventDefault()
+                    console.log("輸入不可為空")
+                    alert("輸入不可為空")
+                }else{
+                    console.log(input.value)
+                    let url="http://127.0.0.1:3000/api/member?username="+String(input.value)
+                    var findName=window.document.getElementById("findName")
+                    fetch(url,{}).then((response)=>{
+                        console.log(response)
+                        console.log("1")
+                        return response.json()
+                    }).then((jsonData)=>{
+                        console.log(jsonData)
+                        let result=String(jsonData["data"]["name"])+" ("+String(jsonData["data"]["email"]) + ")"
+                        findName.innerHTML=result
+                    }).catch((err)=>{
+                        console.log("錯誤",err)
+                        findName.innerHTML="查無資料"
+                    })
+                }
+
+            }
+
+        }
+    </script>
+    <title>會員頁面</title>
+</head>
+<body onload="getInformation()">
+    <div class="firstBlock">
+            歡迎光臨，這是會員頁
+    </div>
+    <div class="secondBlock">
+        <div style="justify-content: center;width: 100%;">
+            <div id="welcomeWords" style="text-align:center ;">{{nic}}歡迎登入系統<br/></div>
+            <div style="text-align:center ;"><a href="/signout">登出系統</a></div>
+        </div>
+    </div>
+    <div class="thirdBlock">
+        <div>
+            <div style="text-align:center ; font-weight: bold;">輸入姓名查詢會員信箱</div>
+                <input id="findInput" type="text" name="content" style="margin:5px;" /><button id="submitBt">查詢</button>
+                <div id="findName" style="text-align:center" ></div>
+        </div>
+    </div>
+    <div class="thirdBlock">
+        <form>
+            <div style="text-align:center ; font-weight: bold;">更新我的姓名</div>
+                <input id="renewInput" type="text" name="content" style="margin:5px;"placeholder="請輸入新姓名"/><button id="renewBt" type="reset">更新</button>
+                <div id="renewResult" style="text-align:center" ></div>
+        </form>
+    </div>
+    <div class="contentBlock">
+        <div>
+            <div id="contentBox" style="text-align:center ; font-weight: bold;"></div>
+        </div>
+    </div>
+</body>
+</html>

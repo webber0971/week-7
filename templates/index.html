@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge"> -->
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+    <!-- <meta meta http-equiv="refresh" content="1"> -->
+    <title>會員系統</title>
+    <script type="text/javascript">
+        window.onload = function(){
+            let registerForm=document.getElementById("registerForm")
+            // 檢查註冊之帳號是否為正確的email格式，對form表單的submit設置監聽器
+            registerForm.addEventListener("submit",function(event){
+                let registerEmail = document.getElementById("registerEmail")
+                if(!registerEmail.value.match(/^\w+@\w+\.\w+$/i)){
+                    alert("帳號請輸入正確email格式")
+                    event.preventDefault()
+                }
+            })
+        }
+    </script>
+    <style type="text/css">
+        .firstBlock{margin-right: 5%;margin-left: 5%;background-color:rgb(25, 54, 95);width:auto;height:100px;text-align:center;line-height:100px;font-size: larger;color: aliceblue;font-weight: bold;}
+        .registerBlock{margin-right: 5%;margin-left: 5%;width:auto;height:200px;border-width:1px;border-style:solid;border-color:rgb(160, 179, 179);display: flex;justify-content:center;align-items:center;}
+        .signinBlock{margin-right: 5%;margin-left: 5%;width:auto;height:200px;border-width:1px;border-style:solid;border-top-style:hidden;border-color:rgb(160, 179, 179);display: flex;justify-content:center;align-items:center;}
+
+    </style>
+</head>
+<body>
+    <div class="firstBlock">
+        歡迎光臨，請輸入帳號密碼
+    </div>
+    <div class="registerBlock">
+        <div>
+            <div style="text-align:center ;font-weight: bold;">
+                註冊系統
+            </div>
+            <form id="registerForm" action="/signup" method="POST">
+                姓名<input type="text" name="nickname"style="margin:5px;" required="required"/><br/>
+                帳號<input type="text" id="registerEmail" name="email"style="margin:5px;" placeholder="請填入信箱" oninvalid="setCustomValidity('留言不能为空')" /><br/>
+                密碼<input type="password" name="password"style="margin:5px;" required="required"/><br/>
+                <div style="text-align: center"><button id="registerEmailButton" >註冊</button></div>
+            </form>
+        </div>
+    </div>
+    <div class="signinBlock">
+        <div>
+            <div style="text-align:center ; font-weight: bold;">
+                登入系統
+            </div>
+            <form action="/signin" method="POST">
+                帳號<input type="text" name="email" style="margin:5px;" placeholder="請填入信箱"/><br/>
+                密碼<input type="password" name="password" style="margin:5px"><br/>
+                <div style="text-align:center"><button>登入</button></div>
+            </form>
+        </div>
+    </div>
+    
+
+
+</body>
+</html>

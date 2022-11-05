@@ -1,17 +1,17 @@
 from email.quoprimime import body_check
+from mysql.connector import pooling
 from operator import truediv
 from turtle import back
-import mysql.connector
 import json
-mydb=mysql.connector.connect(
+mydbPool=pooling.MySQLConnectionPool(
+    pool_name="mypool",
+    pool_size=3,
     host="localhost",
     user="root",
     password="123456789",
     database="WEBSITE"
 )
 print("成功連接到資料庫")
-
-
 # 初始化伺服器
 from flask import *
 app=Flask(
@@ -40,10 +40,13 @@ def member():
 # 回應前端對於留言的資料請求,從資料庫取得資料後先轉成json格式，方便前端處理
 @app.route("/resultContentRequest")
 def resultContentRequest():
-    mycursor=mydb.cursor()
+    connector=mydbPool.get_connection()
+    mycursor=connector.cursor()
     sql="SELECT NAME , content FROM MEMBER INNER JOIN MESSAGE ON MEMBER.ID=MESSAGE.MEMBER_ID order by time DESC"
     mycursor.execute(sql)
     allContent=mycursor.fetchall()
+    mycursor.close()
+    connector.close()
     jsonStr=json.dumps(allContent)
     jsonStr=str(jsonStr)
     return jsonStr
@@ -65,18 +68,20 @@ def signup():
     nickname=request.form["nickname"]
     email=request.form["email"]
     password=request.form["password"]
-    mycursor=mydb.cursor()
+    connector=mydbPool.get_connection()
+    mycursor=connector.cursor()
     sql="SELECT * FROM MEMBER WHERE EMAIL = %s"
     mycursor.execute(sql,(email,))
     nicknameResult=mycursor.fetchone()
     print(nicknameResult)
     if(nicknameResult != None):
         return redirect("/error?msg=信箱已經被註冊")
-    mycursor=mydb.cursor()
     sql="INSERT INTO MEMBER(NAME,EMAIL,PASSWORD) VALUES (%s,%s,%s)"
     val = (nickname,email,password)
     mycursor.execute(sql,val)
-    mydb.commit()
+    connector.commit()
+    mycursor.close()
+    connector.close()
     return redirect("/")
 
 
@@ -86,10 +91,13 @@ def signin():
     passwordIndex=3
     email=request.form["email"]
     password=request.form["password"]
-    mycursor=mydb.cursor()
+    connector=mydbPool.get_connection()
+    mycursor=connector.cursor()
     sql="SELECT * FROM MEMBER WHERE EMAIL = %s"
     mycursor.execute(sql,(email,))
     clientGet=mycursor.fetchone()
+    mycursor.close()
+    connector.close()
     print(clientGet)
     if(clientGet==None):
         return redirect("/error?msg=帳號或密碼輸入錯誤")
@@ -100,56 +108,46 @@ def signin():
     session["id"]=clientGet[0]
     return redirect("/member")
 
-
 # 登出 - 清除session資料
 @app.route("/signout")
 def signout():
     del session["nickname"]
     return redirect("/")
 
-
-# 留言 - 透過此路遊將網頁上輸入的資訊傳入資料庫
-@app.route("/leaveMessage")
-def leaveMessage():
-    member_id=session["id"]
-    content=request.args.get("content","")
-    mycursor=mydb.cursor()
-    sql="INSERT INTO message(MEMBER_ID,CONTENT) VALUES (%s,%s)"
-    val = (member_id,content)
-    mycursor.execute(sql,val)
-    mydb.commit()
-    return redirect("/member")
-
-
 # 建立後端查詢會員資料的api
 @app.get("/api/member")
 def apiGetMemberData():
     userName=request.args.get("username","")
-    mycursor=mydb.cursor()
-    sql = "select id,name,email from member where name = %s"
-    # sql="select * from member where name = %s"
-    print(userName)
+    connector=mydbPool.get_connection()
+    mycursor=connector.cursor()
+    sql = "select id,name,email from member where email = %s"
     mycursor.execute(sql,(userName,))
-    memberData=mycursor.fetchall() #這邊使用fetchall因為同樣姓名的使用者不一定只有一個
-    if(len(memberData)==0):
+    memberData=mycursor.fetchone()
+    mycursor.close()
+    connector.close()#使用完後將連接放回連接池
+    if(memberData==None):
         jsonStr={"data":None}
         return jsonStr
-    jsonStr={"data":{"id" : memberData[0][0] ,"name" : memberData[0][1],"email": memberData[0][2]}}
+    jsonStr={"data":{"id" : memberData[0] ,"name" : memberData[1],"email": memberData[2]}}
     jsonStr=json.dumps(jsonStr)
     print(jsonStr)
     return str(jsonStr)
 
-@app.post("/api/member")
+# 更改姓名
+@app.patch("/api/member")
 def postMemberName():
     if "nickname" in session:
         newName = request.json["newName"]
         idNumber=session["id"]
         try:
-            mycursor=mydb.cursor()
+            connector=mydbPool.get_connection()
+            mycursor=connector.cursor()
             sql="update member set name=%s where id=%s"
             val = (newName,idNumber)
             mycursor.execute(sql,val)
-            mydb.commit()
+            connector.commit()
+            mycursor.close()
+            connector.close()
             print("更改完成")
             responseBody={"ok":True}
             session["nickname"]=newName

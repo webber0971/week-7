@@ -1,7 +1,4 @@
-from email.quoprimime import body_check
 from mysql.connector import pooling
-from operator import truediv
-from turtle import back
 import json
 mydbPool=pooling.MySQLConnectionPool(
     pool_name="mypool",

@@ -155,4 +155,4 @@ def postMemberName():
     else:
         responseBody={"error":True}
         return responseBody
-app.run(port=3000)
+app.run('0.0.0.0',debug=True)

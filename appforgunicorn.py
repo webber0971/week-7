@@ -155,4 +155,4 @@ def postMemberName():
     else:
         responseBody={"error":True}
         return responseBody
-app.run()
+app.run(host="0.0.0.0")

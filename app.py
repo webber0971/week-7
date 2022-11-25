@@ -117,7 +117,7 @@ def apiGetMemberData():
     userName=request.args.get("username","")
     connector=mydbPool.get_connection()
     mycursor=connector.cursor()
-    sql = "select id,name,email from member where email = %s"
+    sql = "select id,name,email from MEMBER where email = %s"
     mycursor.execute(sql,(userName,))
     memberData=mycursor.fetchone()
     mycursor.close()
@@ -139,7 +139,7 @@ def postMemberName():
         try:
             connector=mydbPool.get_connection()
             mycursor=connector.cursor()
-            sql="update member set name=%s where id=%s"
+            sql="update MEMBER set name=%s where id=%s"
             val = (newName,idNumber)
             mycursor.execute(sql,val)
             connector.commit()
